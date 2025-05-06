@@ -1,0 +1,166 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Redirect</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      padding: 50px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    button {
+      padding: 15px 30px;
+      margin: 10px;
+      font-size: 18px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      width: 200px;
+      transition: background-color 0.3s;
+    }
+    #appleMusicBtn {
+      background-color: #fa57c1;
+      color: white;
+    }
+    #appleMusicBtn:hover {
+      background-color: #e94bb0;
+    }
+    #spotifyBtn {
+      background-color: #1db954;
+      color: white;
+    }
+    #spotifyBtn:hover {
+      background-color: #18a746;
+    }
+    #resetBtn {
+      background-color: #888;
+      color: white;
+      font-size: 14px;
+      width: 150px;
+    }
+    #resetBtn:hover {
+      background-color: #666;
+    }
+    p {
+      font-size: 16px;
+      color: #555;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading" class="hidden">
+    <p>Redirecting to your music app...</p>
+  </div>
+  <div id="choice">
+    <h1>Choose Your Music App</h1>
+    <button id="appleMusicBtn" onclick="setPreference('appleMusic')">Open in Apple Music</button>
+    <button id="spotifyBtn" onclick="setPreference('spotify')">Open in Spotify</button>
+    <button id="resetBtn" onclick="clearPreference()">Reset Preference</button>
+  </div>
+
+  <script>
+    // Deep link and web URLs
+    const appleMusicUrl = 'music://music.apple.com/hk/album/%E8%83%AD%E8%84%82%E6%89%A3/1752082194?i=1752082196';
+    const appleMusicWebUrl = 'https://music.apple.com/hk/album/%E8%83%AD%E8%84%82%E6%89%A3/1752082194?i=1752082196&l=en-GB';
+    const spotifyUrl = 'spotify:track:6TdgvQPEiLmQnYtCsxuU6C';
+    const spotifyWebUrl = 'https://open.spotify.com/track/6TdgvQPEiLmQnYtCsxuU6C';
+
+    // Check for saved preference on page load
+    window.onload = function() {
+      const preference = localStorage.getItem('musicPreference');
+      if (preference) {
+        document.getElementById('choice').classList.add('hidden');
+        document.getElementById('loading').classList.remove('hidden');
+        if (preference === 'appleMusic') {
+          redirectToApp(appleMusicUrl, appleMusicWebUrl);
+        } else if (preference === 'spotify') {
+          redirectToApp(spotifyUrl, spotifyWebUrl);
+        }
+      }
+      // If no preference, show the choice buttons (already visible)
+    };
+
+    // Set preference and redirect
+    function setPreference(service) {
+      localStorage.setItem('musicPreference', service);
+      document.getElementById('choice').classList.add('hidden');
+      document.getElementById('loading').classList.remove('hidden');
+      if (service === 'appleMusic') {
+        redirectToApp(appleMusicUrl, appleMusicWebUrl);
+      } else if (service === 'spotify') {
+        redirectToApp(spotifyUrl, spotifyWebUrl);
+      }
+    }
+
+    // Clear preference and reload
+    function clearPreference() {
+      localStorage.removeItem('musicPreference');
+      window.location.reload();
+    }
+
+    // Attempt to open app, fallback to web
+    function redirectToApp(appUrl, webUrl) {
+      window.location.href = appUrl;
+      setTimeout(() => {
+        window.location.href = webUrl;
+      }, 1000); // Fallback to web if app not installed
+    }
+  </script>
+</body>
+</html>
