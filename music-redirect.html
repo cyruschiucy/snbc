@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -85,6 +46,13 @@
     #spotifyBtn:hover {
       background-color: #18a746;
     }
+    #kkboxBtn {
+      background-color: #00a1d6;
+      color: white;
+    }
+    #kkboxBtn:hover {
+      background-color: #008cb5;
+    }
     #resetBtn {
       background-color: #888;
       color: white;
@@ -111,6 +79,7 @@
     <h1>Choose Your Music App</h1>
     <button id="appleMusicBtn" onclick="setPreference('appleMusic')">Open in Apple Music</button>
     <button id="spotifyBtn" onclick="setPreference('spotify')">Open in Spotify</button>
+    <button id="kkboxBtn" onclick="setPreference('kkbox')">Open in KKBox</button>
     <button id="resetBtn" onclick="clearPreference()">Reset Preference</button>
   </div>
 
@@ -118,8 +87,10 @@
     // Deep link and web URLs
     const appleMusicUrl = 'music://music.apple.com/hk/album/%E8%83%AD%E8%84%82%E6%89%A3/1752082194?i=1752082196';
     const appleMusicWebUrl = 'https://music.apple.com/hk/album/%E8%83%AD%E8%84%82%E6%89%A3/1752082194?i=1752082196&l=en-GB';
-    const spotifyUrl = 'spotify:track:6TdgvQPEiLmQnYtCsxuU6C';
+    const spotifyUrl = 'https://open.spotify.com/track/6TdgvQPEiLmQnYtCsxuU6C';
     const spotifyWebUrl = 'https://open.spotify.com/track/6TdgvQPEiLmQnYtCsxuU6C';
+    const kkboxUrl = 'https://www.kkbox.com/hk/en/album/KnfYv2xZbvUVIxMEHR';
+    const kkboxWebUrl = 'https://www.kkbox.com/hk/en/album/KnfYv2xZbvUVIxMEHR';
 
     // Check for saved preference on page load
     window.onload = function() {
@@ -131,6 +102,8 @@
           redirectToApp(appleMusicUrl, appleMusicWebUrl);
         } else if (preference === 'spotify') {
           redirectToApp(spotifyUrl, spotifyWebUrl);
+        } else if (preference === 'kkbox') {
+          redirectToApp(kkboxUrl, kkboxWebUrl);
         }
       }
       // If no preference, show the choice buttons (already visible)
@@ -145,6 +118,8 @@
         redirectToApp(appleMusicUrl, appleMusicWebUrl);
       } else if (service === 'spotify') {
         redirectToApp(spotifyUrl, spotifyWebUrl);
+      } else if (service === 'kkbox') {
+        redirectToApp(kkboxUrl, kkboxWebUrl);
       }
     }
 
