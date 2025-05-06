@@ -76,7 +76,7 @@
     <p>Redirecting to your music app...</p>
   </div>
   <div id="choice">
-    <h1>Choose Your Music App</h1>
+    <h1 id="songTitle">Choose Your Music App</h1>
     <button id="appleMusicBtn" onclick="setPreference('appleMusic')">Open in Apple Music</button>
     <button id="spotifyBtn" onclick="setPreference('spotify')">Open in Spotify</button>
     <button id="kkboxBtn" onclick="setPreference('kkbox')">Open in KKBox</button>
@@ -84,36 +84,54 @@
   </div>
 
   <script>
-    // Deep link and web URLs
-    const appleMusicUrl = 'music://music.apple.com/hk/album/%E8%83%AD%E8%84%82%E6%89%A3/1752082194?i=1752082196';
-    const appleMusicWebUrl = 'https://music.apple.com/hk/album/%E8%83%AD%E8%84%82%E6%89%A3/1752082194?i=1752082196&l=en-GB';
-    const spotifyUrl = 'https://open.spotify.com/track/6TdgvQPEiLmQnYtCsxuU6C';
-    const spotifyWebUrl = 'https://open.spotify.com/track/6TdgvQPEiLmQnYtCsxuU6C';
-    const kkboxUrl = 'https://www.kkbox.com/hk/en/album/KnfYv2xZbvUVIxMEHR';
-    const kkboxWebUrl = 'https://www.kkbox.com/hk/en/album/KnfYv2xZbvUVIxMEHR';
+    // Default URLs (fallback if no songId or song not found)
+    let songData = {
+      appleMusicUrl: 'music://music.apple.com/hk/album/%E8%83%AD%E8%84%82%E6%89%A3/1752082194?i=1752082196',
+      appleMusicWebUrl: 'https://music.apple.com/hk/album/%E8%83%AD%E8%84%82%E6%89%A3/1752082194?i=1752082196&l=en-GB',
+      spotifyUrl: 'https://open.spotify.com/track/ 6TdgvQPEiLmQnYtCsxuU6C',
+      spotifyWebUrl: 'https://open.spotify.com/track/6TdgvQPEiLmQnYtCsxuU6C',
+      kkboxUrl: 'https://www.kkbox.com/hk/en/album/KnfYv2xZbvUVIxMEHR',
+      kkboxWebUrl: 'https://www.kkbox.com/hk/en/album/KnfYv2xZbvUVIxMEHR'
+    };
 
-    // Check for saved preference on page load
-    window.onload = function() {
+    // Get songId from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const songId = urlParams.get('songId');
+
+    // Load song data from songs.json
+    fetch('songs.json')
+      .then(response => response.json())
+      .then(data => {
+        if (songId && data[songId]) {
+          songData = data[songId];
+          document.getElementById('songTitle').textContent = `Choose Your Music App for "${songData.title}"`;
+        }
+        // Proceed with redirect logic
+        handleRedirect();
+      })
+      .catch(error => {
+        console.error('Error loading songs.json:', error);
+        // Proceed with default URLs
+        handleRedirect();
+      });
+
+    function handleRedirect() {
       const preference = localStorage.getItem('musicPreference');
       if (preference) {
-        // Hide choice and show loading immediately
         document.getElementById('choice').classList.add('hidden');
         document.getElementById('loading').classList.remove('hidden');
-        
-        // Redirect based on preference
         if (preference === 'appleMusic') {
-          redirectToApp(appleMusicUrl, appleMusicWebUrl);
+          redirectToApp(songData.appleMusicUrl, songData.appleMusicWebUrl);
         } else if (preference === 'spotify') {
-          redirectToApp(spotifyUrl, spotifyWebUrl);
+          redirectToApp(songData.spotifyUrl, songData.spotifyWebUrl);
         } else if (preference === 'kkbox') {
-          redirectToApp(kkboxUrl, kkboxWebUrl);
+          redirectToApp(songData.kkboxUrl, songData.kkboxWebUrl);
         }
       } else {
-        // No preference: show choice buttons
         document.getElementById('choice').classList.remove('hidden');
         document.getElementById('loading').classList.add('hidden');
       }
-    };
+    }
 
     // Set preference and redirect
     function setPreference(service) {
@@ -121,11 +139,11 @@
       document.getElementById('choice').classList.add('hidden');
       document.getElementById('loading').classList.remove('hidden');
       if (service === 'appleMusic') {
-        redirectToApp(appleMusicUrl, appleMusicWebUrl);
+        redirectToApp(songData.appleMusicUrl, songData.appleMusicWebUrl);
       } else if (service === 'spotify') {
-        redirectToApp(spotifyUrl, spotifyWebUrl);
+        redirectToApp(songData.spotifyUrl, songData.spotifyWebUrl);
       } else if (service === 'kkbox') {
-        redirectToApp(kkboxUrl, kkboxWebUrl);
+        redirectToApp(songData.kkboxUrl, songData.kkboxWebUrl);
       }
     }
 
@@ -135,15 +153,11 @@
       window.location.reload();
     }
 
-    // Attempt to open app, fallback to web with improved logic
+    // Attempt to open app, fallback to web
     function redirectToApp(appUrl, webUrl) {
-      // Attempt to open the app
       const startTime = Date.now();
       window.location.href = appUrl;
-
-      // Monitor if the page is still active after attempting redirect
       setTimeout(() => {
-        // If still on the page (app didn't open), redirect to web URL
         if (Date.now() - startTime < 1500) {
           window.location.href = webUrl;
         }
