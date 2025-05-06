@@ -1,0 +1,11 @@
+{
+  "1234567890": {
+    "title": "Sample Song",
+    "appleMusicUrl": "music://music.apple.com/hk/album/%E8%83%AD%E8%84%82%E6%89%A3/1752082194?i=1752082196",
+    "appleMusicWebUrl": "https://music.apple.com/hk/album/%E8%83%AD%E8%84%82%E6%89%A3/1752082194?i=1752082196&l=en-GB",
+    "spotifyUrl": "https://open.spotify.com/track/6TdgvQPEiLmQnYtCsxuU6C",
+    "spotifyWebUrl": "https://open.spotify.com/track/6TdgvQPEiLmQnYtCsxuU6C",
+    "kkboxUrl": "https://www.kkbox.com/hk/en/album/KnfYv2xZbvUVIxMEHR",
+    "kkboxWebUrl": "https://www.kkbox.com/hk/en/album/KnfYv2xZbvUVIxMEHR"
+  }
+}
