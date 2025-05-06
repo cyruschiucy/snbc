@@ -96,8 +96,11 @@
     window.onload = function() {
       const preference = localStorage.getItem('musicPreference');
       if (preference) {
+        // Hide choice and show loading immediately
         document.getElementById('choice').classList.add('hidden');
         document.getElementById('loading').classList.remove('hidden');
+        
+        // Redirect based on preference
         if (preference === 'appleMusic') {
           redirectToApp(appleMusicUrl, appleMusicWebUrl);
         } else if (preference === 'spotify') {
@@ -105,8 +108,11 @@
         } else if (preference === 'kkbox') {
           redirectToApp(kkboxUrl, kkboxWebUrl);
         }
+      } else {
+        // No preference: show choice buttons
+        document.getElementById('choice').classList.remove('hidden');
+        document.getElementById('loading').classList.add('hidden');
       }
-      // If no preference, show the choice buttons (already visible)
     };
 
     // Set preference and redirect
@@ -129,12 +135,19 @@
       window.location.reload();
     }
 
-    // Attempt to open app, fallback to web
+    // Attempt to open app, fallback to web with improved logic
     function redirectToApp(appUrl, webUrl) {
+      // Attempt to open the app
+      const startTime = Date.now();
       window.location.href = appUrl;
+
+      // Monitor if the page is still active after attempting redirect
       setTimeout(() => {
-        window.location.href = webUrl;
-      }, 1000); // Fallback to web if app not installed
+        // If still on the page (app didn't open), redirect to web URL
+        if (Date.now() - startTime < 1500) {
+          window.location.href = webUrl;
+        }
+      }, 1000);
     }
   </script>
 </body>
